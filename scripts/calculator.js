@@ -18,11 +18,17 @@ function onClick(e){
 }
 
 let display_value = 0;
+updateDisplay();
 
+//limit to 15 digits?
 function onNumberClick(num){
-    display_value = (10 * display_value) + num;
-    console.log("Current display value = " + display_value);
-    updateDisplay();
+    if( ("" + display_value).length < 15){
+        display_value = (10 * display_value) + num;
+        console.log("Current display value = " + display_value);
+        updateDisplay();
+    }else {
+        console.log("Digit limit reached");
+    }
 }
 
 function updateDisplay(){
