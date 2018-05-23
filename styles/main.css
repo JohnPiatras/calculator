@@ -1,0 +1,27 @@
+
+#calculator-container{
+    width:320px;
+    margin:auto;
+    position:relative;
+    top:200px;
+    border:1px solid black;
+}
+
+#number-display{
+    font-size:24pt;
+    text-align:right;
+    padding: 5px 10px 5px 10px;
+    border:2px solid black;
+}
+
+#button-container{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    height:256px;
+    margin:auto;
+}
+
+button {
+    font-size:16pt;
+    
+}
