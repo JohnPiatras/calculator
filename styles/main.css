@@ -7,11 +7,23 @@
     border:1px solid black;
 }
 
-#number-display{
+#display{
+    border:1px solid black;
     font-size:24pt;
-    text-align:right;
     padding: 5px 10px 5px 10px;
     border:2px solid black;
+}
+
+#op-display{
+    display:inline-block;
+    width:15%;
+}
+
+#number-display{
+    display:inline-block;
+    font-size:24pt;
+    text-align:right;
+    width:80%;
 }
 
 #button-container{
