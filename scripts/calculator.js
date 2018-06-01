@@ -1,128 +1,102 @@
 "use strict"
 
-//Globals
-let display_value = 0;
-let display_stale = false;  //true if showing previous result - its gone stale, so clear and start again when  user presses a digit
-let operands = [];
-let operator = null;
+function initialise(){
+    calculator.reset();
+    display.clear();
 
-updateDisplay();
+    let buttons = document.querySelectorAll("button");
+    buttons.forEach(button => {
+        if(button.textContent.match(/[0123456789]/g))
+            button.addEventListener('click', onClickNumber);
+        else if(button.textContent.match(/[*\+\-\/]/g)){
+            button.addEventListener('click', onClickOperator);
+        }else if(button.textContent == "="){
+            button.addEventListener('click', onClickEquals);
+        }else if(button.textContent == "AC"){
+            button.addEventListener('click', onClickAllClear);
+        }else if(button.textContent == "C"){
+            button.addEventListener('click', onClickClear);
+        }else if(button.textContent == "."){
+            button.addEventListener('click', onClickPeriod); 
+        }  
+    });
+}
 
-let buttons = document.querySelectorAll("button");
-buttons.forEach(button => {
-    if(button.textContent.match(/[0123456789]/g))
-        button.addEventListener('click', onClickNumber);
-    else if(button.textContent.match(/[*+-\/]/g)){
-        button.addEventListener('click', onClickOperator);
-    }else if(button.textContent == "="){
-        button.addEventListener('click', onClickEquals);
-    }else if(button.textContent == "AC"){
-        button.addEventListener('click', onClickAllClear);
-    }else if(button.textContent == "C"){
-        button.addEventListener('click', onClickClear);
-    }    
-});
+let display = { number: "0",
+                operator: null,
+                stale: false,
+                update: function(){
+                    document.getElementById("number-display").textContent = "" + this.number;
+                    document.getElementById("op-display").textContent = this.operator != null ? this.operator: "";
+                },
+                clear: function(){
+                    this.number = "0";
+                    this.operator = null;
+                    this.stale = false;
+                    this.update();
+                }
+}
 
 function onClickNumber(e){
-    let num = Number(e.target.textContent);
-    if(display_stale){
-        display_value = 0;
-        display_stale = false;
+    let num = e.target.textContent;
+    if(display.stale){
+        display.clear();     
     }
-    if( ("" + display_value).length < 15){
-        display_value = (10 * display_value) + num;
-        updateDisplay();
+    if( display.number.length < 15){
+        if(display.number == "0")
+            display.number = num;
+        else
+            display.number = display.number + num;
+        display.update();
     }else {
         console.log("Digit limit reached");
     }
 }
 
+function onClickPeriod(){
+    if(!display.number.includes(".")){
+        display.number = display.number + ".";
+    }
+    display.update();
+}
+
 function onClickOperator(e){
     let op = e.target.textContent;
-    
-    if(!display_stale){
-        operands.push(display_value);
-        display_stale = true;
+    if(!display.stale){
+        calculator.push(display.number);
+        display.stale = true;
     }
 
-    if(operands.length == 2){
-        operands.push( operate());
-        display_value = operands[0];
-        display_stale = true;
-    }
-    operator = op;
-    updateDisplay();
+    display.operator = op;
+    calculator.push(op);
+    display.update();
 }
 
 function onClickEquals(){
-    if(operands.length == 1 && operator != null && !display_stale){
-        operands.push(display_value);
-        operands.push(operate());
-        display_value = operands[0];
-        operator = null;
-        display_stale = true;
-    } 
-
-    updateDisplay();
+    if(!display.stale)calculator.push(display.number);
+    display.number = "" + calculator.evaluate();
+    display.stale = true;
+    display.operator = null;
+    display.update();
 }
 
-function allClear(){
-    display_value = 0;
-    display_stale = false;
-    operands = [];
-    operator = null;
-}
 
 function onClickAllClear(){
-    allClear();
-    updateDisplay();
+    display.clear();
+    calculator.reset();
 }
 
 function onClickClear(){
-    if(display_stale){
-        allClear();
+    if(display.stale){
+        onClickAllClear();
     }else
-        display_value = Math.floor(display_value / 10);
-    updateDisplay();
+        display.number = display.number.slice(0, display.number.length - 1);
+    display.update();
 }
 
-function updateDisplay(){
-    document.getElementById("number-display").textContent = "" + display_value;
-    document.getElementById("op-display").textContent = operator != null ? operator: "";
-}
-
-function printstate(){
-    console.log("---State---");
-    console.log("    operands: " + operands);
-    console.log("    operator: " + operator);
-    console.log("    display: " + display_value + ", stale: " + display_stale);
-}
-
-
-
-
-function operate(){
-    let r;
-    let a = operands.shift();
-    let b = operands.shift();
-    switch(operator){
-        case '+':
-            r = a + b;  
-            break;
-        case '-':
-            r = a - b;
-            break;
-        case "*":
-            r = a * b;
-            break;
-        case "/":
-            r = a / b;
-            break;
-    }
-    return r;
-}
 
 //implements a stack based calculator
+
 let calculator = {
     precedence: {  "+": 1,
                     "-": 1,
@@ -161,21 +135,44 @@ let calculator = {
         this.operand_stack.push(r);
     },
 
-    pushOperator: function(op){
-        if(this.operator_stack.length > 0 && this.precedence[op] <= this.precedence[this.operator_stack[this.operator_stack.length - 1]]){
-            this.evalTop();
+    pushOperator: function(op){      
+        if(this.operator_stack.length > 0 ){
+            if(this.operand_stack.length <= this.operator_stack.length)
+                this.operator_stack.pop();//replace current operator
+
+            if(this.precedence[op] <= this.precedence[this.operator_stack[this.operator_stack.length - 1]]){
+                this.evalTop();
+            }
         }
         this.operator_stack.push(op);
+    },
+
+    pushNumber: function(n){
+        if(this.operand_stack.length > this.operator_stack.length)
+            this.operand_stack.pop(); //replace current operand
+
+        this.operand_stack.push(n);
     },
 
     push: function(value){
         let n = Number(value);
         if(!isNaN(n)){
-            this.operand_stack.push(n);
+            
+            this.pushNumber(n);
         }
         else if(value.match(/[*+-\/]/g)){
             this.pushOperator(value);
         }
+        this.printState();
+        //this.toString();
+    },
+
+    peekOperand: function(){
+        return this.operand_stack[this.operand_stack.length - 1];
+    },
+
+    peekOperator: function(){
+        return this.operator_stack[this.operator_stack.length - 1];
     },
 
     evalFromString: function(str){
@@ -211,10 +208,21 @@ let calculator = {
         }
         console.table(arr);
 
+    },
+
+    toString: function(){
+        let s = "";
+        let nums = [...this.operand_stack];
+        let ops = [...this.operator_stack];
+        while(nums > 0 || ops > 0){
+            s = s + " " + nums.shift() + " " + ops.shift();
+        }
+        console.log(s);
+        return s;
     }
 
 
 }
 
 
-
+initialise();
