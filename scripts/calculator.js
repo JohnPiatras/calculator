@@ -26,6 +26,7 @@ let display = { number: "0",
                 operator: null,
                 stale: false,
                 update: function(){
+                    this.round();
                     document.getElementById("number-display").textContent = "" + this.number;
                     document.getElementById("op-display").textContent = this.operator != null ? this.operator: "";
                 },
@@ -34,6 +35,9 @@ let display = { number: "0",
                     this.operator = null;
                     this.stale = false;
                     this.update();
+                },
+                round: function(){
+                    //round number if it has >15 digits, including a decimal point
                 }
 }
 
