@@ -122,5 +122,99 @@ function operate(){
     return r;
 }
 
+//implements a stack based calculator
+let calculator = {
+    precedence: {  "+": 1,
+                    "-": 1,
+                    "*": 2,
+                    "/": 2
+    },
+    operand_stack: [],
+    operator_stack: [],
+
+    reset: function(){
+        this.operand_stack = [];
+        this.operator_stack = [];
+    },
+
+
+    //pop 2 operands and one operator, then evaluate
+    evalTop: function(){
+        let b = this.operand_stack.pop();
+        let a = this.operand_stack.pop();
+        let op = this.operator_stack.pop();
+        let r = 0;
+        switch(op){
+            case '+':
+                r = a + b;  
+                break;
+            case '-':
+                r = a - b;
+                break;
+            case "*":
+                r = a * b;
+                break;
+            case "/":
+                r = a / b;
+                break;
+        }
+        this.operand_stack.push(r);
+    },
+
+    pushOperator: function(op){
+        if(this.operator_stack.length > 0 && this.precedence[op] <= this.precedence[this.operator_stack[this.operator_stack.length - 1]]){
+            this.evalTop();
+        }
+        this.operator_stack.push(op);
+    },
+
+    push: function(value){
+        let n = Number(value);
+        if(!isNaN(n)){
+            this.operand_stack.push(n);
+        }
+        else if(value.match(/[*+-\/]/g)){
+            this.pushOperator(value);
+        }
+    },
+
+    evalFromString: function(str){
+        this.reset();
+        let tokens = str.split(" ");
+        while(tokens.length > 0){
+            this.push(tokens.shift());
+        }
+        return this.evaluate();
+    },
+
+    evaluate: function(){
+        while(this.operator_stack.length > 0){
+            this.evalTop();
+        }
+        return this.operand_stack[0];
+    },
+
+    printState: function(){
+        let arr = [];
+        let n = (this.operand_stack.length >= this.operator_stack.length) ? this.operand_stack.length : this.operator_stack.length;
+        for(let i = n - 1; i >= 0; i--){
+            let a = " ";
+            let b = " ";
+            if(i < this.operand_stack.length){
+                a = this.operand_stack[i];
+            }
+
+            if(i < this.operator_stack.length){
+                b = this.operator_stack[i];
+            }
+            arr.push([a, b]);
+        }
+        console.table(arr);
+
+    }
+
+
+}
+
 
 
