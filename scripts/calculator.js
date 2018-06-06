@@ -26,7 +26,6 @@ let display = { number: "0",
                 operator: null,
                 stale: false,
                 update: function(){
-                    this.round();
                     document.getElementById("number-display").textContent = "" + this.number;
                     document.getElementById("op-display").textContent = this.operator != null ? this.operator: "";
                 },
@@ -36,8 +35,22 @@ let display = { number: "0",
                     this.stale = false;
                     this.update();
                 },
-                round: function(){
-                    //round number if it has >15 digits, including a decimal point
+                setNumber: function(n){
+                    let s = "" + n;
+                    
+                    if(s.length > 15){
+                        s = n.toPrecision(15);
+
+                        let e = s.indexOf("e+");
+                        if(e > -1)
+                            //s = n.toPrecision(15 - (s.length - e + 1));
+                            s = n.toPrecision(14 - s.length + e);
+                        else if(s.indexOf(".") > -1)
+                            s = n.toPrecision(14);
+                    }
+
+                    this.number = s;
+                    
                 }
 }
 
@@ -78,7 +91,7 @@ function onClickOperator(e){
 
 function onClickEquals(){
     if(!display.stale)calculator.push(display.number);
-    display.number = "" + calculator.evaluate();
+    display.setNumber(calculator.evaluate());
     display.stale = true;
     display.operator = null;
     display.update();

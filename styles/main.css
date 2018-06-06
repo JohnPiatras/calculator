@@ -9,7 +9,7 @@
 
 #display{
     border:1px solid black;
-    font-size:24pt;
+    font-size:18pt;
     padding: 5px 10px 5px 10px;
     border:2px solid black;
 }
@@ -21,7 +21,7 @@
 
 #number-display{
     display:inline-block;
-    font-size:24pt;
+    font-size:18pt;
     text-align:right;
     width:80%;
 }
