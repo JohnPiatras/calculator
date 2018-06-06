@@ -4,6 +4,8 @@ function initialise(){
     calculator.reset();
     display.clear();
 
+    window.addEventListener('keypress', onKeyPress);
+
     let buttons = document.querySelectorAll("button");
     buttons.forEach(button => {
         if(button.textContent.match(/[0123456789]/g))
@@ -58,6 +60,52 @@ let display = { number: "0",
                 }
 }
 
+function onKeyPress(e){
+    switch(e.charCode){
+        case 0:
+            if(e.keyCode == 13)onClickEquals();
+            switch(e.keyCode){
+                case 8:
+                    onClickClear();
+                    break;
+                case 13:
+                    onClickEquals();
+                    break;
+            }
+            break;
+        case 42:
+            onClickOperator({target: {textContent: "*" }} );
+            break;
+        case 43:
+            onClickOperator({target: {textContent: "+" }} );
+            break;
+        case 45:
+            onClickOperator({target: {textContent: "-" }} );
+            break;
+        case 46:
+            onClickPeriod();
+            break;
+        case 47:
+            onClickOperator({target: {textContent: "/" }} );
+            break;
+        
+        case 48:
+        case 49:
+        case 50:
+        case 51:
+        case 52:
+        case 53:
+        case 54:
+        case 55:
+        case 56:
+        case 57:
+            onClickNumber({target: {textContent: String.fromCharCode(e.charCode) }} );
+
+
+    }
+    console.log(e.charCode + " : " + e.keyCode);
+}
+
 function onClickNumber(e){
     let num = e.target.textContent;
     if(display.stale){
@@ -75,7 +123,12 @@ function onClickNumber(e){
 
 function onClickPeriod(){
     if(!display.number.includes(".")){
-        display.number = display.number + ".";
+        if(!display.stale)
+            display.number = display.number + ".";
+        else{
+            display.number = "0.";
+            display.stale = false;
+        }
     }
     display.update();
 }
