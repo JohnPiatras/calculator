@@ -24,7 +24,7 @@ function initialise(){
 
 let display = { number: "0",
                 operator: null,
-                stale: false,
+                stale: false, //indicates that current value of display.number should not be pushed to calculator
                 update: function(){
                     document.getElementById("number-display").textContent = "" + this.number;
                     document.getElementById("op-display").textContent = this.operator != null ? this.operator: "";
@@ -34,6 +34,10 @@ let display = { number: "0",
                     this.operator = null;
                     this.stale = false;
                     this.update();
+                },
+                clearNumber: function(){
+                    this.number = "";
+                    this.stale = false;
                 },
                 setNumber: function(n){
                     let s = "" + n;
@@ -57,16 +61,15 @@ let display = { number: "0",
 function onClickNumber(e){
     let num = e.target.textContent;
     if(display.stale){
-        display.clear();     
+        display.number = "";
+        display.stale = false;     
     }
     if( display.number.length < 15){
-        if(display.number == "0")
+        if(display.number == "0" || display.number == "")
             display.number = num;
         else
             display.number = display.number + num;
         display.update();
-    }else {
-        console.log("Digit limit reached");
     }
 }
 
@@ -79,28 +82,38 @@ function onClickPeriod(){
 
 function onClickOperator(e){
     let op = e.target.textContent;
+
     if(!display.stale){
         calculator.push(display.number);
-        display.stale = true;
     }
-
+    display.number = "";
+    display.stale = true;
     display.operator = op;
     calculator.push(op);
     display.update();
 }
 
 function onClickEquals(){
-    if(!display.stale)calculator.push(display.number);
-    display.setNumber(calculator.evaluate());
-    display.stale = true;
-    display.operator = null;
-    display.update();
+    if(display.number == "0" && display.operator == "/"){
+        alert("Warning - singlularity detected! Please don't divide by zero!");
+        return;
+    }
+
+    if(!display.stale){
+        calculator.push(display.number);
+        display.setNumber(calculator.evaluate());
+        display.stale = true;
+        display.operator = null;
+        display.update();
+    }
 }
 
 
 function onClickAllClear(){
-    display.clear();
-    calculator.reset();
+    if(confirm("Are you sure you wish to Clear All?")){
+        display.clear();
+        calculator.reset();
+    }
 }
 
 function onClickClear(){
@@ -167,7 +180,6 @@ let calculator = {
     pushNumber: function(n){
         if(this.operand_stack.length > this.operator_stack.length)
             this.operand_stack.pop(); //replace current operand
-
         this.operand_stack.push(n);
     },
 
@@ -180,8 +192,6 @@ let calculator = {
         else if(value.match(/[*+-\/]/g)){
             this.pushOperator(value);
         }
-        this.printState();
-        //this.toString();
     },
 
     peekOperand: function(){
